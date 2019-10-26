@@ -1,35 +1,35 @@
-const fs = require("fs");
-const puppeteer = require("puppeteer");
-const BASE_URL = "https://www.pqi.or.kr/inf/qul/infQulList.do";
+const fs = require('fs');
+const puppeteer = require('puppeteer');
+const BASE_URL = 'https://www.pqi.or.kr/inf/qul/infQulList.do';
 let majors = [];
 let currentPage = 1;
 
 async function extractLicenses(page) {
-  const tableRows = await page.$$eval("table#qulListTb tbody tr", trs =>
+  const tableRows = await page.$$eval('table#qulListTb tbody tr', trs =>
     trs.map(tr => tr.innerText)
   );
   const extracted = tableRows.map(tr => {
-    const [, , name, institute] = tr.split("\t");
-    return { name, institute };
+    const [, , name, institute] = tr.split('\t');
+    return {name, institute};
   });
 
   return extracted;
 }
 
 async function goNextPage(page, curr = 1) {
-  const pageNums = await page.$$(".page_num > ul > li");
+  const pageNums = await page.$$('.page_num > ul > li');
 
   for (liHandle of pageNums) {
-    const button = await liHandle.$("a");
-    const pageName = (button && (await liHandle.$eval("a", a => a.innerText))) || -1;
+    const button = await liHandle.$('a');
+    const pageName = (button && (await liHandle.$eval('a', a => a.innerText))) || -1;
 
     if (Number(pageName) === curr + 1 && curr % 10 !== 0) {
       await button.click();
-      await page.waitForSelector("table#qulListTb");
+      await page.waitForSelector('table#qulListTb');
       return true;
-    } else if (curr % 10 === 0 && pageName === "next") {
+    } else if (curr % 10 === 0 && pageName === 'next') {
       await button.click();
-      await page.waitForSelector("table#qulListTb");
+      await page.waitForSelector('table#qulListTb');
       return true;
     }
   }
@@ -57,5 +57,5 @@ async function goNextPage(page, curr = 1) {
     currentPage++;
   }
 
-  fs.writeFileSync("license.txt", majors.map(m => JSON.stringify(m)).join("\n"));
+  fs.writeFileSync('license.txt', majors.map(m => JSON.stringify(m)).join('\n'));
 })();
